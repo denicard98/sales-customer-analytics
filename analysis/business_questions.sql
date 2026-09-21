@@ -91,7 +91,7 @@ WHERE o.status = 'Completed'
 GROUP BY c.country
 ORDER BY total_revenue DESC;
 
--- Validation: how many distinct completed orders contributed to each country's revenue?
+-- Additional analysis: number of distinct completed orders contributing to each country's revenue
 SELECT
     c.country,
     SUM(oi.quantity * oi.unit_price * (1 - oi.discount_percent / 100)) AS total_revenue,
@@ -128,7 +128,7 @@ ORDER BY total_revenue DESC;
 
 /* ------------------------------------------------------------
    Q6. How many registered customers, by country, have never
-   placed an order? Identifies markets with the highest share
+   placed an order? Identifies markets with the highest number
    of inactive customers.
    Output: country, total_clients.
    ------------------------------------------------------------ */
@@ -180,8 +180,10 @@ WHERE o.status = 'Completed'
 
 
 /* ------------------------------------------------------------
-   Q8. Which Sales employees generated the most and least
-   revenue through completed orders?
+   Q8. How does completed-order performance vary across Sales employees?
+   Compare completed-order revenue and order volume across Sales employees.
+   Note: only Sales employees with at least one completed order are
+   included here, due to the INNER JOIN.
    Output: employee_id, employee_name, total_orders, total_revenue.
    ------------------------------------------------------------ */
 SELECT
@@ -200,4 +202,3 @@ GROUP BY
     e.employee_id,
     e.first_name
 ORDER BY total_revenue DESC;
-
