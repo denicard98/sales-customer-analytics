@@ -10,7 +10,7 @@ A retail company sells Electronics, Accessories and Furniture products online to
 
 - Which customers and markets are actually generating revenue
 - Where customer activity is concentrated or missing (inactive/Premium customers)
-- Which products and sales employees are performing best
+- Which product categories generate the most revenue and sales volume
 
 The queries in this project answer those questions directly from the transactional data.
 
@@ -78,7 +78,7 @@ Full queries: [`analysis/business_questions.sql`](analysis/business_questions.sq
 
 **Q2 — Repeat customers.** Only 4 customers have 2 or more completed orders: Miguel (Portugal, 3), Laura (Germany, 3), Carlos (Spain, 2) and Ana (Portugal, 2). Repeat activity is concentrated in a small group.
 
-**Q3 — Premium customers with no orders.** Zero Premium customers have never ordered — every Premium-segment customer in this dataset has at least one order on record. Both the main query and the `EXCEPT`-based validation query agree (empty result set). Based on this data, there is no reactivation target within the Premium segment.
+**Q3 — Premium customers with no orders.** Zero Premium customers have never ordered — every Premium-segment customer in this dataset has at least one order on record. Both the main query and the `EXCEPT`-based validation query agree (empty result set). Based on this data, there are no potential activation targets within the Premium segment.
 
 **Q4 — Revenue by country.**
 
@@ -91,7 +91,7 @@ Full queries: [`analysis/business_questions.sql`](analysis/business_questions.sq
 | UK | 1930.00 | 2 |
 | Italy | 365.00 | 1 |
 
-Portugal and Germany together account for the majority of revenue. The order-count breakdown confirms revenue scales with order volume — no single country shows an outsized revenue-per-order gap, except Italy, which rests on a single order.
+Portugal generates the highest completed-order revenue (6250.00 across 7 orders), followed by Germany (5183.00 across 4 orders). Together, these two markets account for the majority of completed-order revenue in the dataset.
 
 **Q5 — Category performance.**
 
@@ -101,11 +101,11 @@ Portugal and Germany together account for the majority of revenue. The order-cou
 | Accessories | 1700.00 | 20 |
 | Furniture | 1400.00 | 4 |
 
-Electronics drives most of the revenue (about 84% of the total across these three categories) despite selling a similar number of units to Accessories — a direct result of its much higher unit price. Furniture sells the fewest units but still outperforms Accessories per unit sold.
+Electronics generates about 84% of total completed-order revenue while selling 21 units, compared with 20 Accessories units. This indicates a substantially higher revenue contribution per unit from Electronics in this dataset. Furniture sells the fewest units (4) but still outperforms Accessories on revenue per unit sold.
 
 **Q6 — Inactive registered customers by country.** Only Germany (2) and Portugal (1) have customers who never placed an order; the other four countries have none. Inactivity is limited and concentrated, not spread across the customer base.
 
-**Q7 — Cross-category buyers (Electronics + Accessories).** 6 customers purchased from both categories in completed orders: Ana, Miguel, Sofia (Portugal), Laura (Germany), Carlos (Spain) and Emma (UK) — a subset of the same customers who also appear among the repeat buyers in Q2.
+**Q7 — Cross-category buyers (Electronics + Accessories).** 6 customers purchased from both categories in completed orders: Ana, Miguel, Sofia (Portugal), Laura (Germany), Carlos (Spain) and Emma (UK). Four of these customers — Ana, Miguel, Laura and Carlos — also appear among the repeat customers identified in Q2.
 
 **Q8 — Completed-order performance across Sales employees.** (Only Sales employees with at least one completed order appear, due to the `INNER JOIN`.)
 
@@ -115,7 +115,7 @@ Electronics drives most of the revenue (about 84% of the total across these thre
 | Pedro (202) | 7 | 6250.00 |
 | Sarah (201) | 4 | 4115.00 |
 
-Julia has both the highest order count and the highest revenue. Sarah has roughly half Julia's order count, but revenue-per-order is broadly similar across all three, suggesting the gap tracks order volume rather than deal size.
+Julia generated the highest completed-order revenue (8738.00) and the highest number of completed orders (8), followed by Pedro and Sarah. This comparison is limited to Sales employees with at least one completed order.
 
 **Cross-check.** The grand-total query in [`analysis/validation_queries.sql`](analysis/validation_queries.sql) returns 19103.00 in total completed-order revenue — matching the sum of Q4 (by country), Q5 (by category) and Q8 (by Sales employee) exactly, confirming the three breakdowns are consistent with each other.
 
