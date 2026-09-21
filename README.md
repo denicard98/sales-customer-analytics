@@ -41,7 +41,7 @@ Customers ──< Orders ──< OrderItems >── Products
 5. Which product categories perform best (revenue and units sold)?
 6. How many registered customers, by country, have never placed an order?
 7. Which customers bought from both the Electronics and Accessories categories?
-8. Which Sales employees generated the most/least revenue?
+8. How does completed-order performance vary across Sales employees?
 
 Full queries: [`analysis/business_questions.sql`](analysis/business_questions.sql)
 
@@ -50,8 +50,10 @@ Full queries: [`analysis/business_questions.sql`](analysis/business_questions.sq
 - Only `'Completed'` orders are counted as revenue/activity unless the question is specifically about inactive customers.
 - Revenue is calculated as `quantity * unit_price * (1 - discount_percent / 100)` at the order-item level, then aggregated.
 - **Join choice reflects the business question, not habit**: `INNER JOIN` is used wherever the analysis requires a matched record (e.g. an order must have a customer); `LEFT JOIN` is used only where unmatched records *are* the answer — e.g. Premium customers with no matching order (Q3), or customers with no matching order at all (Q6). These are classic anti-join patterns (`WHERE <right side> IS NULL`).
-- Two questions (Q3 and Q4) include a second, independent query that validates the main result using a different SQL technique (`EXCEPT` for Q3, an order-count check for Q4) — a simple form of self-checking before trusting the output.
+- Q3 includes a second, independent query that validates the main result using a different SQL technique (`EXCEPT`) — a genuine cross-check, since it answers the same question a different way.
+- Q4 includes a second query that adds distinct completed-order counts per country. This is **additional analysis**, not validation — it enriches the result with another metric rather than confirming it independently.
 - Q7 uses `INTERSECT` to find customers present in *both* category result sets, instead of a more complex join/subquery.
+- [`analysis/validation_queries.sql`](analysis/validation_queries.sql) contains a genuine reconciliation check: a single grand-total revenue query that Q4 (by country), Q5 (by category) and Q8 (by Sales employee) should each sum back to. This is a stronger check than "the query ran without error" — it confirms that three independently grouped aggregations of the same data agree with each other.
 
 ## SQL Skills Demonstrated
 
@@ -62,11 +64,13 @@ Full queries: [`analysis/business_questions.sql`](analysis/business_questions.sq
 - Derived/calculated columns (discount-adjusted revenue)
 - Set operators `EXCEPT` and `INTERSECT` for validation and multi-condition matching
 - Result validation by cross-checking a query with a second, differently-built query
+- Reconciling independently grouped aggregates back to a single grand total
 
 ## How to Run
 
 1. Run [`database/schema_setup.sql`](database/schema_setup.sql) in SSMS or `sqlcmd` — creates the `SQL_Practice` database, tables and sample data.
 2. Run [`analysis/business_questions.sql`](analysis/business_questions.sql) — each of the 8 business questions is a standalone, labeled query block.
+3. Optionally run [`analysis/validation_queries.sql`](analysis/validation_queries.sql) — reconciles Q4, Q5 and Q8 against a single grand total.
 
 ## Findings
 
@@ -87,7 +91,7 @@ Full queries: [`analysis/business_questions.sql`](analysis/business_questions.sq
 | UK | 1930.00 | 2 |
 | Italy | 365.00 | 1 |
 
-Portugal and Germany together account for the majority of revenue. The order-count validation confirms revenue scales with order volume — no single country shows an outsized revenue-per-order gap, except Italy, which rests on a single order.
+Portugal and Germany together account for the majority of revenue. The order-count breakdown confirms revenue scales with order volume — no single country shows an outsized revenue-per-order gap, except Italy, which rests on a single order.
 
 **Q5 — Category performance.**
 
@@ -103,7 +107,7 @@ Electronics drives most of the revenue (about 84% of the total across these thre
 
 **Q7 — Cross-category buyers (Electronics + Accessories).** 6 customers purchased from both categories in completed orders: Ana, Miguel, Sofia (Portugal), Laura (Germany), Carlos (Spain) and Emma (UK) — a subset of the same customers who also appear among the repeat buyers in Q2.
 
-**Q8 — Sales employee performance.**
+**Q8 — Completed-order performance across Sales employees.** (Only Sales employees with at least one completed order appear, due to the `INNER JOIN`.)
 
 | Employee | Orders | Revenue |
 |---|---|---|
@@ -111,7 +115,9 @@ Electronics drives most of the revenue (about 84% of the total across these thre
 | Pedro (202) | 7 | 6250.00 |
 | Sarah (201) | 4 | 4115.00 |
 
-Julia leads on both order count and revenue. Sarah has roughly half Julia's order count but a revenue-per-order broadly in line with the other two, suggesting the gap is driven by order volume rather than deal size.
+Julia has both the highest order count and the highest revenue. Sarah has roughly half Julia's order count, but revenue-per-order is broadly similar across all three, suggesting the gap tracks order volume rather than deal size.
+
+**Cross-check.** The grand-total query in [`analysis/validation_queries.sql`](analysis/validation_queries.sql) returns 19103.00 in total completed-order revenue — matching the sum of Q4 (by country), Q5 (by category) and Q8 (by Sales employee) exactly, confirming the three breakdowns are consistent with each other.
 
 ## Repository Structure
 
@@ -119,8 +125,8 @@ Julia leads on both order count and revenue. Sarah has roughly half Julia's orde
 sales-customer-analytics/
 ├── README.md
 ├── database/
-│   └── schema_setup.sql       -- creates database, tables and sample data
+│   └── schema_setup.sql        -- creates database, tables and sample data
 └── analysis/
-    └── business_questions.sql -- the 8 business questions + 2 validation queries
+    ├── business_questions.sql  -- the 8 business questions (+ 1 validation, 1 additional-analysis query)
+    └── validation_queries.sql  -- grand-total reconciliation check for Q4, Q5, Q8
 ```
-
